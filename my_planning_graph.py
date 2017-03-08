@@ -1,3 +1,5 @@
+import copy
+
 from aimacode.planning import Action
 from aimacode.search import Problem
 from aimacode.utils import expr
@@ -196,6 +198,15 @@ def mutexify(node1: PgNode, node2: PgNode):
         raise TypeError('Attempted to mutex two nodes of different types')
     node1.mutex.add(node2)
     node2.mutex.add(node1)
+
+
+def find_single_goal(s_level, goal) -> bool:
+
+    for node in s_level:
+        if goal == node.literal:
+            return True
+
+    return False
 
 
 class PlanningGraph():
@@ -592,15 +603,13 @@ class PlanningGraph():
         level_sum = 0
         # TODO implement
         # for each goal in the problem, determine the level cost, then add them together
-        for expr in self.problem.goal:
-            found = False
-            for level in range(0, len(self.s_levels) - 1):
-                if found:
+        goals = copy.copy(self.problem.goal)
+
+        for goal in goals:
+            for level in range(0, len(self.s_levels)):
+                if find_single_goal(self.s_levels[level], goal):
+                    level_sum += level
                     break
-                s_level = self.s_levels[level]
-                for node in s_level:
-                    if node.literal == expr:
-                        found = True
-                        level_sum += level
-                        break
+
         return level_sum
+
